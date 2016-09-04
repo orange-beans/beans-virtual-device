@@ -1,0 +1,29 @@
+{
+  "name": "prjx",
+  "description": "Prjx",
+  "version": "0.0.3",
+  "private": true,
+  "author": "orange@prjx-beans <orange@prjx-beans.com>",
+  "dependencies": {
+    "express": "4.12.x",
+    "serve-static": "1.9.x",
+    "morgan": "1.5.x",
+    "body-parser": "1.12.x",
+    "method-override": "2.3.x",
+    "errorhandler": "1.3.x"
+  },
+  "main": "app.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/orange8Beans/prjx_testing_website.git"
+  },
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/orange8Beans/prjx_testing_website/issues"
+  },
+  "homepage": "https://github.com/orange8Beans/prjx_testing_website"
+}

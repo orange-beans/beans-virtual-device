@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>Beans Virtual Devices</title>
+  <!-- Bootstrap -->
+  <link rel="stylesheet" href="js/bootstrap/bootstrap.min.css">
+  <!-- Handwrite font -->
+  <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Patrick+Hand" />
+  <!-- Third party plugins -->
+  <!-- Timeto -->
+  <link rel="stylesheet" type="text/css" href="rs/timeTo/timeTo.css">
+
+  <link rel="stylesheet" type="text/css" href="css/virtual_devices.css">
+
+  <link rel="shortcut icon" href="rs/favicon.ico">
+  <style>
+    body {
+      background-color: #f2f1ef;
+      line-height: normal;
+    }
+
+    .module-closer {
+      width: 1.5em;
+      border: 1px solid lightgrey;
+      position: absolute;
+      padding: 0;
+      top: 0;
+      right: 0;
+    }
+    .module-closer:hover {
+      background : rgba(222, 38, 69, 0.91);
+    }
+
+    .dropdown-menu {
+      font-size: x-large;
+    }
+
+    .handwrite {
+      font: 400 3.5em/125% 'Patrick Hand', Helvetica, Sans-serif;
+      color: #333;
+    }
+
+    #sortable {
+      list-style-type : none;
+      margin          : 0;
+      padding         : 0;
+      width           : 960px;
+      height          : 220px;
+    }
+
+    #sortable span {
+      margin     : 3px 3px 3px 0;
+      padding    : 1px;
+      float      : left;
+      width      : auto;
+      height     : 40px;
+      font-size  : 1.5em;
+      text-align : center;
+      vertical-align: middle;
+      background-color: #32a5d4;
+      line-height: 40px;
+      color      : floralwhite;
+    }
+
+  </style>
+  <script src="js/jq/jquery.min.js"></script>
+  <script src="js/bootstrap/bootstrap.min.js"></script>
+  <script src="js/jq/jquery-ui.min.js"></script>
+  <script src="js/jq/jquery.event.ue.js"></script>
+  <!-- ui drag/drop support for mobile devices -->
+  <script src="js/jq/jquery.ui.touch-punch.js"></script>
+
+  <!-- Third party plugins -->
+  <!-- Timeto -->
+  <script src="rs/timeTo/jquery.timeTo.js"></script>
+  <script src="js/jq/jquery.fn.sortable.js"></script>
+
+  <!-- amplify is better, it doesn't need a DOM to handle the event -->
+  <script src="js/amplify/amplify.core.js"></script>
+
+  <script src="js/coffee/js2coffee.min.js"></script>
+  <script src="js/coffee/coffeescript.min.js"></script>
+  <script src="js/prjX.js"></script>
+  <script src="js/prjX.util.js"></script>
+  <script src="js/prjX.language_engine.js"></script>
+  <script src="js/prjX.dom_module.js"></script>
+  <script src="js/prjX.virtual_device.js"></script>
+  <!--<script src="js/prjX.device.js"></script>-->
+
+  <!--<script src="lan_obj.js"></script>-->
+  <script>
+    $(function () {
+      var
+          $stage = $('#stage'),
+          $area  = $('#btn_area'),
+          $area2 = $('#area2'),
+
+          $raw = $('#raw'),
+          $sortable = $('#sortable'),
+          _result = '',
+          $aft = $('#aft'),
+
+          $confirm = $('#btn-confirm'),
+          $back    = $('#btn-back'),
+          $clear   = $('#btn-clear'),
+
+          _exe_gen,
+          temp_set_drag,
+          sort_btns,
+          $dev_btns = $area2.find('.btn-group'),
+          _v_devices = $('#v_devices');
+
+      temp_set_drag = function () {
+        $( ".v_button, .v_light, .v_music, .v_gyro, .v_router" ).draggable({
+          containment: '#stage'
+        });
+      };
+
+      $raw.sortable({
+        revert: true
+      });
+
+      $sortable.sortable({
+        animation : 150,
+        dataIdAttr: 'id',
+
+        onSort : function () {
+          console.log($sortable.sortable("toArray"));
+          // Also sort the language object array
+          //
+          lan.lan_ary.sort(function (a, b) {
+            var id_ary = $sortable.sortable("toArray");
+            return id_ary.indexOf(a["uni_id"]) > id_ary.indexOf(b["uni_id"]);
+          });
+
+          lan.str_ary  = [];
+          lan.fuc_ary  = [];
+          $.each(lan.lan_ary, function(idx, _obj) {
+            lan.str_ary.push(_obj["dsp_str"]);
+            lan.fuc_ary.push(_obj["fuc_str"]);
+          });
+          console.log(lan.str_ary, lan.fuc_ary);
+        }
+      });
+
+
+
+      $.getJSON("js/virtual_device.json", function (data) {
+        window.test = data["f_obj"][lan.lang];
+        //var Logic = vdev.V_Logic('Logic');
+        var Logic = vdev.V_Logic('逻辑');
+        Logic.btn.create($area2);
+        Logic.btn.setTarget($raw);
+
+        // Create the router
+        vdev.V_Router();
+        vdev.router.create($stage);
+        vdev.router.btn.create($area2);
+        vdev.router.btn.setTarget($raw);
+
+        temp_set_drag();
+      });
+
+      var g_exe = function (){};
+      // Sorting the orders of the control buttons
+      //
+      sort_btns = function () {
+        $dev_btns = $area2.find('.btn-group');
+        if ($dev_btns.length >= 2) {
+          $dev_btns.sort(function (a, b) {
+            return $(a).attr('title') > $(b).attr('title');
+          }).appendTo($area2);
+        }
+      };
+
+      _v_devices.on('click', sort_btns);
+
+      _v_devices.find('.v_add_button').on('click', function () {
+        //var temp = V_Button('Button ' + pad(Math.floor(Math.random() * 10), 2) + 1);
+        //var temp = vdev.V_Button('Button ' + prjX.util.idTools.random_cap());
+        var temp = vdev.V_Button('按钮 ' + prjX.util.idTools.random_cap());
+        temp.create($stage);
+        temp.btn.create($area2);
+        temp.btn.setTarget($raw);
+        temp_set_drag();
+        //sort_btns();
+      });
+
+      _v_devices.find('.v_add_light').on('click', function () {
+        //var temp = vdev.V_Light('Light ' + prjX.util.idTools.random_cap());
+        var temp = vdev.V_Light('灯光 ' + prjX.util.idTools.random_cap());
+        temp.create($stage);
+        temp.btn.create($area2);
+        temp.btn.setTarget($raw);
+        temp_set_drag();
+      });
+
+      _v_devices.find('.v_add_music').on('click', function () {
+        //var temp = vdev.V_Music('Music ' + prjX.util.idTools.random_cap());
+        var temp = vdev.V_Music('音乐 ' + prjX.util.idTools.random_cap());
+        temp.create($stage);
+        temp.btn.create($area2);
+        temp.btn.setTarget($raw);
+        temp_set_drag();
+      });
+
+      _v_devices.find('.v_add_gyro').on('click', function () {
+        //var temp = vdev.V_Music('Music ' + prjX.util.idTools.random_cap());
+        var temp = vdev.V_Gyro('陀螺 ' + prjX.util.idTools.random_cap());
+        temp.create($stage);
+        temp.btn.create($area2);
+        temp.btn.setTarget($raw);
+        temp_set_drag();
+      });
+
+
+
+      amplify.subscribe('v-dev-table', g_exe);
+
+      $confirm.on('click', function() {
+        // unsubscribe the g_exe for every round
+        //
+        amplify.unsubscribe('v-dev-table', g_exe);
+        console.log(lan.fuc_ary.join(''));
+
+        $aft.val( CoffeeScript.compile( lan.fuc_ary.join('')));
+
+        _result = _exe_gen($aft.val());
+        console.log(_result);
+
+        eval(_result);
+
+      });
+
+      // Go back one step of the command string
+      // clear the command and function string
+      $back.on('click', function () {
+        lan.lan_ary[lan.lan_ary.length - 1].destroy();
+        lan.lan_ary.pop();
+
+        lan.fuc_ary.pop();
+        lan.str_ary.pop();
+      });
+
+      $clear.on('click', function () {
+        lan.fuc_ary = [];
+        lan.str_ary = [];
+        lan.lan_ary = [];
+        $sortable.html('');
+      });
+
+      _exe_gen = function (func_str) {
+        return   "g_exe = function (data) {"
+                 +   func_str
+                 + "};"
+                 + "\r\namplify.subscribe('v-dev-table', g_exe);";
+      };
+    });
+  </script>
+</head>
+<body>
+  <div style="outline:solid;height:960px;width:960px;position: relative;margin:0 auto;">
+    <div id="testclock" ></div>
+    <div id="testclock1"></div>
+    <div id="testclock2"></div>
+    <div id='area2' class="btn-group-lg" role="group" style="height:48px" aria-label="...">
+    </div>
+
+    <div style="height:280px;width:960px;float: left">
+      <!--<div class=".row handwrite" id="raw" style="white-space: pre-wrap;outline:solid thin;height:220px;width:960px;font-size: xx-large;font-weight: bold">-->
+      <!--<div class="handwrite" id="raw" style="outline:solid thin;height:220px;width:960px;font-size: x-large;font-weight: bold">-->
+      <div class="" id="raw" style="outline:solid thin;height:220px;width:960px;font-weight: bold">
+        <div id="sortable">
+
+          <!--<li class="ui-state-default">1</li>-->
+          <!--<li class="ui-state-default">2</li>-->
+          <!--<li class="ui-state-default">3</li>-->
+          <!--<li class="ui-state-default">4</li>-->
+          <!--<li class="ui-state-default">5</li>-->
+          <!--<li class="ui-state-default">6</li>-->
+          <!--<li class="ui-state-default">7</li>-->
+          <!--<li class="ui-state-default">8</li>-->
+          <!--<li class="ui-state-default">9</li>-->
+          <!--<li class="ui-state-default">10</li>-->
+          <!--<li class="ui-state-default">11</li>-->
+          <!--<li class="ui-state-default">12</li>-->
+        </div>
+      </div>
+
+      <!--<textarea class=".row handwrite" id="raw" rows="6" cols="70"-->
+                <!--style="font-weight:bold;font-size: 28px;float:left; display: none">-->
+      <!--</textarea>-->
+      <textarea class=".col" id="aft" rows="12" cols="48"
+      style="font-weight:bold;font-family:Consolas; font-size: 17px;float:left;display: none">
+      </textarea>
+
+      <div class="btn-group" role="group" aria-label="...">
+        <div class="btn-group" role="group" style="">
+          <!--<button id="btn" class="btn-lg btn-default">Confirm</button>-->
+          <!--<button id="btn-back" class="btn-lg btn-default">Back</button>-->
+          <!--<button id="btn-clear" class="btn-lg btn-default">Clear</button>-->
+          <button id="btn-confirm" class="btn-lg btn-default">确认</button>
+          <button id="btn-back" class="btn-lg btn-default">后退</button>
+          <button id="btn-clear" class="btn-lg btn-default">清空</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="height:480px;width:960px;float:left;">
+
+      <div style="height:60px;width:960px;float: left">
+        <div id='btn_area' class="btn-group" role="group" aria-label="...">
+          <div id='v_devices' class="btn-group" role="group">
+            <button class="btn-lg btn-default dropdown-toggle" type="button" data-toggle="dropdown">添加一个魔豆
+              <span class="caret"></span></button>
+            <ul class="dropdown-menu">
+              <li class="v_add_button"><a href="#">按钮</a></li>
+              <li class="v_add_light"><a href="#">灯光</a></li>
+              <li class="v_add_music"><a href="#">音乐</a></li>
+              <li class="v_add_gyro"><a href="#">传感</a></li>
+              <li class="v_add_system"><a href="#">控制</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div id="stage" style="height:570px;width:960px;float:left">
+      </div>
+
+    </div>
+
+  </div>
+</body>
+</html>
